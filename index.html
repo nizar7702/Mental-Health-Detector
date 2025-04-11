@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mental Health Chatbot</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #1E1E2E;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 400px;
+            background: #2C2C3E;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 80vh;
+        }
+
+        .chat-header {
+            background: #6A5ACD;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+
+        .chat-body {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 15px;
+            font-size: 0.95em;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background: #6A5ACD;
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background: #44445A;
+            color: white;
+            border-bottom-left-radius: 2px;
+        }
+
+        .typing {
+            font-size: 0.9em;
+            color: #bbb;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0.5; }
+        }
+
+        .chat-footer {
+            display: flex;
+            padding: 10px;
+            background: #2C2C3E;
+            border-top: 1px solid #444;
+        }
+
+        textarea {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            resize: none;
+            outline: none;
+            background: #3A3A4E;
+            color: white;
+            font-size: 1em;
+        }
+
+        button {
+            margin-left: 10px;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 10px;
+            background: #6A5ACD;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #5A4DBA;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="chat-container">
+        <div class="chat-header">🧠 Mental Health Detector by Nizar Boussabat
+        </div>
+        
+        <div class="chat-body" id="chatBody">
+            <div class="bot-message message">Hello! How are you feeling today? 😊</div>
+        </div>
+
+        <div class="chat-footer">
+            <textarea id="userInput" rows="1" placeholder="Type your feelings..."></textarea>
+            <button id="sendBtn">➤</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('sendBtn').addEventListener('click', async () => {
+            let input = document.getElementById('userInput').value.trim();
+            if (input === "") return;
+
+            let chatBody = document.getElementById('chatBody');
+
+            // User message
+            let userMsg = document.createElement('div');
+            userMsg.classList.add('message', 'user-message');
+            userMsg.innerText = input;
+            chatBody.appendChild(userMsg);
+            document.getElementById('userInput').value = "";
+            chatBody.scrollTop = chatBody.scrollHeight;
+
+            // Typing effect
+            let typingIndicator = document.createElement('div');
+            typingIndicator.classList.add('bot-message', 'message', 'typing');
+            typingIndicator.innerText = "Typing...";
+            chatBody.appendChild(typingIndicator);
+            chatBody.scrollTop = chatBody.scrollHeight;
+
+            // Fetch prediction
+            let response = await fetch('/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: input })
+            });
+            let result = await response.json();
+
+            // Remove typing indicator
+            chatBody.removeChild(typingIndicator);
+
+            // Bot response
+            let botMsg = document.createElement('div');
+            botMsg.classList.add('message', 'bot-message');
+            botMsg.innerText = result.prediction;
+            chatBody.appendChild(botMsg);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        });
+
+        // Send message on Enter key
+        document.getElementById('userInput').addEventListener('keypress', (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                document.getElementById('sendBtn').click();
+            }
+        });
+    </script>
+
+</body>
+</html>
